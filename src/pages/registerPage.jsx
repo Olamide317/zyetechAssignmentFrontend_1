@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import Cookies from "js-cookie";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://zyetechassignmentbackend-1.onrender.com";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -118,10 +122,12 @@ export default function RegisterPage() {
         return;
       }
 
-      const response = await axios.post(
-        "http://localhost:3000/auth/register",
-        data
-      );
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, data);
+      const token = response.data?.token;
+
+      if (token) {
+        Cookies.set("token", token, { expires: 7 });
+      }
 
       console.log("Account created:", response.data);
       toast.success("Account created successfully!");

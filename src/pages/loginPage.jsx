@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
+import Cookies from "js-cookie";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://zyetechassignmentbackend-1.onrender.com";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -14,44 +18,47 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
-    setData({
-      ...data,
+    setData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   async function handleSubmit(e) {
     e.preventDefault();
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/auth/login",
-        data
-      );
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, data);
+      const token = response.data?.token;
 
-      console.log("Login submitted:", response.data);
-      toast.success("Login successfull!");
+      if (token) {
+        Cookies.set("token", token, { expires: 7 });
+      }
+
+      toast.success("Login successful!");
       navigate("/dashboard");
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
 
       if (
         error.response?.status === 401 &&
-        error.response?.data?.message === "Account not found") {
+        error.response?.data?.message === "Account not found"
+      ) {
         toast.error("Account not found");
         return;
       }
 
       if (
         error.response?.status === 401 &&
-        error.response?.data?.message === "Invalid Credentials") {
+        error.response?.data?.message === "Invalid Credentials"
+      ) {
         toast.error("Invalid Password");
         return;
       }
 
       toast.error("Something went wrong. Please try again.");
     }
-  };
+  }
 
   return (
     <div className="mx-auto max-w-150 shadow-2xl rounded-2xl mt-20 p-8 bg-amber-50/40">

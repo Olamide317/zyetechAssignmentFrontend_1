@@ -3,31 +3,20 @@ import { jwtDecode } from "jwt-decode";
 import { Navigate, Outlet } from "react-router-dom";
 
 export default function ProtectedRoute() {
-    let isValid = true;
+  const token = Cookies.get("token");
 
-    try {
-        const token = Cookies.get("token");
+  if (!token) {
+    Cookies.remove("token");
+    return <Navigate to="/login" replace />;
+  }
 
-        if (!token) {
-            isValid = false;
-        } else {
-            const decoded = jwtDecode(token);
+  try {
+    jwtDecode(token);
+  } catch (error) {
+    console.error(error);
+    Cookies.remove("token");
+    return <Navigate to="/login" replace />;
+  }
 
-            console.log(decoded);
-
-            if (!decoded.exp || decoded.exp * 1000 < Date.now()) {
-                isValid = false;
-            }
-        }
-    } catch (error) {
-        console.log(error);
-        isValid = false;
-    }
-
-    if (!isValid) {
-        Cookies.remove("token");
-        return <Navigate to="/login" />;
-    }
-
-    return <Outlet />;
+  return <Outlet />;
 }
